@@ -1,0 +1,77 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/fondotrue"
+    android:orientation="vertical"
+    android:clipToPadding="false"
+    tools:context=".CreateUser" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:elevation="30dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/rock_salt"
+            android:gravity="center"
+            android:text="Historial Médico Mental"
+            android:textColor="#FFF"
+            android:textSize="20dp" />
+    </RelativeLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ondasmentales"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:fontFamily="@font/convergence"
+            android:gravity="center"
+            android:text="Este proyecto tiene como objetivo apoyar a las personas en los momentos más difíciles de la vida al ayudar a comunicar esos momentos difíciles sin la necesidad de palabras, sino a través de la mente"
+            android:textColor="#fff"
+            android:textSize="20dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="30dp"
+        android:orientation="horizontal"
+        android:weightSum="1" >
+
+        <EditText
+            android:id="@+id/etUserName"
+            android:layout_width="0dip"
+            android:layout_height="match_parent"
+            android:layout_weight="0.7"
+            android:paddingLeft="10dp"
+            android:hint="Escribe tu nombre"
+            android:singleLine="true"
+            android:textSize="18dp"
+            android:layout_marginLeft="5dp"
+            android:textColor="#000000"
+            android:background="@drawable/createuser"/>
+
+        <Button
+            android:layout_width="0dip"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:onClick="onclickCreate"
+            android:textColor="#fff"
+            android:text="Crear"
+            android:background="@drawable/bordebutton"/>
+    </LinearLayout>
+
+</LinearLayout>
