@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -76,15 +77,15 @@ public class EegActivity extends Activity {
             checkConnect();
         }
 
-        Start_button = findViewById(R.id.startbutton);
-        Stop_button  = findViewById(R.id.stopbutton);
+        Start_button = (Button)findViewById(R.id.startbutton);
+        Stop_button  = (Button)findViewById(R.id.stopbutton);
 
         Start_button.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
                 // TODO Auto-generated method stub
-                Log.e("MotionEEGr","Comenzar a escribir archivo");
+                Log.e("MotionEEG","Comenzar a escribir archivo");
                 setDataFile();
                 isEnableWriteFile = true;
             }
@@ -159,7 +160,7 @@ public class EegActivity extends Activity {
 
         if (requestCode == REQUEST_ENABLE_BT) {
             if(resultCode == Activity.RESULT_OK){
-                edkJava.IEE_EngineConnect("");
+                //edkJava.IEE_EngineConnect("");
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 Toast.makeText(this, "Necesitas activar el bluetooth para conectarte con el dispotivo Emotiv"
@@ -168,6 +169,7 @@ public class EegActivity extends Activity {
         }
     }
 
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -265,6 +267,7 @@ public class EegActivity extends Activity {
             String file_path = root.getAbsolutePath()+ "/EEG/";
             File folder=new File(file_path);
 
+
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 if(!folder.exists())
                 {
@@ -314,6 +317,10 @@ public class EegActivity extends Activity {
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+        else
+        {
+            //emoEngine
         }
     }
 }

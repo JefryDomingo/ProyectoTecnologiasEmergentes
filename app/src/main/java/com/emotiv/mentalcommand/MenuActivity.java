@@ -75,7 +75,7 @@ public class MenuActivity extends Activity {
 
             @Override
             public void onPageSelected(final int i) {
-                Toast.makeText(MenuActivity.this,"Pagina selecionada: " + i,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MenuActivity.this,"Pagina selecionada: " + i,Toast.LENGTH_SHORT).show();
 
                 btnOrdr.setOnClickListener(new View.OnClickListener() {
                     @Override

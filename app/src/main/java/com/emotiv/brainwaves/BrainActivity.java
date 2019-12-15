@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -59,19 +60,25 @@ public class BrainActivity extends Activity {
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
 
-        Emotiv.IEE_EmoInitDevice(this);
-        edkJava.IEE_EngineConnect("Emotiv Systems-5");
-        IEE_DataChannel_t[] ChannelListTmp = {IEE_DataChannel_t.IED_AF3, IEE_DataChannel_t.IED_T7,IEE_DataChannel_t.IED_Pz,
-                IEE_DataChannel_t.IED_T8,IEE_DataChannel_t.IED_AF4};
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_BLUETOOTH);
+            }
+            else{
+                checkConnect();
+            }
+        }
+        else {
+            checkConnect();
+        }
 
-        Channel_list = ChannelListTmp;
-
-        handleEvent = edkJava.IEE_EmoEngineEventCreate();
-        emoState = edkJava.IEE_EmoStateCreate();
-
-        Start_button = findViewById(R.id.startbutton);
-        Stop_button  = findViewById(R.id.stopbutton);
+        Start_button = (Button)findViewById(R.id.startbutton);
+        Stop_button  = (Button)findViewById(R.id.stopbutton);
 
         Start_button.setOnClickListener(new View.OnClickListener() {
 
@@ -92,6 +99,14 @@ public class BrainActivity extends Activity {
                 isEnableWriteFile = false;
             }
         });
+
+        Emotiv.IEE_EmoInitDevice(this);
+        edkJava.IEE_EngineConnect("Emotiv Systems-5");
+        IEE_DataChannel_t[] ChannelListTmp = {IEE_DataChannel_t.IED_AF3, IEE_DataChannel_t.IED_T7,IEE_DataChannel_t.IED_Pz,
+                IEE_DataChannel_t.IED_T8,IEE_DataChannel_t.IED_AF4};
+        Channel_list = ChannelListTmp;
+        handleEvent = edkJava.IEE_EmoEngineEventCreate();
+        emoState = edkJava.IEE_EmoStateCreate();
 
         processingThread=new Thread() {
             @Override
@@ -115,62 +130,98 @@ public class BrainActivity extends Activity {
                 }
             }
         };
-
         processingThread.start();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_BLUETOOTH: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    checkConnect();
+
+                } else {
+
+                    Toast.makeText(this, "La aplicación no puede funcionar si no le ortorgas los permisos", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if(resultCode == Activity.RESULT_OK){
+                //Connect to emoEngine
+                //edkJava.IEE_EngineConnect("");
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Necesitas activar el bluetooth para conectarte con el dispotivo Emotiv"
+                        , Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
 
-                case 0:
+                case 0: {
                     int state = edkJava.IEE_EngineGetNextEvent(handleEvent);
                     if (state == edkJava.EDK_OK) {
                         IEE_Event_t eventType = edkJava.IEE_EmoEngineEventGetType(handleEvent);
 
                         SWIGTYPE_p_unsigned_int pEngineId = edkJava.new_uint_p();
                         int result = edkJava.IEE_EmoEngineEventGetUserId(handleEvent, pEngineId);
-                        int tmpUserId = (int)edkJava.uint_p_value(pEngineId);
+                        int tmpUserId = (int) edkJava.uint_p_value(pEngineId);
                         edkJava.delete_uint_p(pEngineId);
+                        userId = tmpUserId;
                         switch (eventType) {
-                            case IEE_UserAdded:
-                            {
+                            case IEE_UserAdded: {
                                 Log.e("SDK", "Usuario añadido");
                                 edkJava.IEE_FFTSetWindowingType(userId, IEE_WindowingTypes.IEE_BLACKMAN);
                                 isEnablGetData = true;
                             }
-                            case IEE_UserRemoved:
-                            {
+                            break;
+                            case IEE_UserRemoved: {
                                 Log.e("SDK", "Usuario removido");
                                 isEnablGetData = false;
                             }
+                            break;
                         }
                     }
                     break;
+                }
                 case 1:
+                 {
                     /*Connect device with Insight headset*/
                     int number = Emotiv.IEE_GetInsightDeviceCount();
-                    if(number != 0) {
-                        if(!lock){
+                    if (number != 0) {
+                        if (!lock) {
                             lock = true;
                             Emotiv.IEE_ConnectInsightDevice(0);
                         }
                     } else {
                         number = Emotiv.IEE_GetEpocPlusDeviceCount();
-                        if(number != 0) {
-                            if(!lock){
+                        if (number != 0) {
+                            if (!lock) {
                                 lock = true;
-                                Emotiv.IEE_ConnectEpocPlusDevice(0,false);
-                            }
+                                Emotiv.IEE_ConnectEpocPlusDevice(0, false);
+                            } else lock = false;
                         }
-                        else lock = false;
                     }
-                    break;
-                case 2:
-                    if(bp_writer == null) return;
-                    for(int i=0; i < Channel_list.length; i++)
-                    {
+                }
+                break;
+                case 2: {
+                    if (bp_writer == null) return;
+                    for (int i = 0; i < Channel_list.length; i++) {
                         SWIGTYPE_p_double ptheta = edkJava.new_double_p();
                         SWIGTYPE_p_double palpha = edkJava.new_double_p();
                         SWIGTYPE_p_double plow_beta = edkJava.new_double_p();
@@ -178,8 +229,8 @@ public class BrainActivity extends Activity {
                         SWIGTYPE_p_double pgamma = edkJava.new_double_p();
                         int result = -1;
                         result = edkJava.IEE_GetAverageBandPowers(userId, Channel_list[i], ptheta, palpha, plow_beta, phigh_beta, pgamma);
-                        if(result == edkJava.EDK_OK){
-                            Log.e("FFT", "GetAverageBandPowers");
+                        if (result == edkJava.EDK_OK) {
+                            Log.e("EEG", "Llenando la data EEG");
                             try {
                                 bp_writer.write(Name_Channel[i] + ",");
                                 addData(edkJava.double_p_value(ptheta));
@@ -199,45 +250,13 @@ public class BrainActivity extends Activity {
                         edkJava.delete_double_p(phigh_beta);
                         edkJava.delete_double_p(pgamma);
                     }
-                    break;
+                }
+                break;
             }
 
         }
 
     };
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_BLUETOOTH: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    checkConnect();
-
-                } else {
-                    Toast.makeText(this, "La aplicación no puede funcionar si no le ortorgas los permisos", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
-
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (requestCode == REQUEST_ENABLE_BT) {
-            if(resultCode == Activity.RESULT_OK){
-                //Connect to emoEngine
-                edkJava.IEE_EngineConnect("");
-            }
-            if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "Necesitas activar el bluetooth para conectarte con el dispotivo Emotiv"
-                        , Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     private void setDataFile() {
         try {
@@ -297,6 +316,10 @@ public class BrainActivity extends Activity {
             /*Se requiere activar el Bluetooth*/
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+        else
+        {
+
         }
     }
 

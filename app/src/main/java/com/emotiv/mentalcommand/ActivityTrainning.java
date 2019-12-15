@@ -320,7 +320,7 @@ public class ActivityTrainning extends Activity implements EngineInterface {
 	public void trainSucceed() {
 		// TODO Auto-generated method stub
 		progressBarTime.setVisibility(View.INVISIBLE);
-		btnTrain.setText("Train");
+		btnTrain.setText("Entrenar");
 		enableClick();
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 				ActivityTrainning.this);
@@ -352,7 +352,7 @@ public class ActivityTrainning extends Activity implements EngineInterface {
 	@Override
 	public  void trainFailed(){
 		progressBarTime.setVisibility(View.INVISIBLE);
-		btnTrain.setText("Train");
+		btnTrain.setText("Entrenar");
 		enableClick();
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 				ActivityTrainning.this);
